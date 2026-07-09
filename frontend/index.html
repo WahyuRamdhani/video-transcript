@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Transcript Exporter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Video Transcript Exporter</h1>
+    <p class="subtitle">Paste a video page URL, transcribe it, and download a structured DOCX transcript.</p>
+
+    <form id="transcribe-form">
+      <label for="video_url">Video page URL</label>
+      <input type="url" id="video_url" name="video_url" placeholder="https://example.com/video-page" required />
+
+      <label for="title">Document title (optional)</label>
+      <input type="text" id="title" name="title" placeholder="Video Transcript" />
+
+      <label for="cookie">
+        Session cookie (optional — only needed if the page requires login)
+      </label>
+      <textarea id="cookie" name="cookie" rows="3" placeholder="Paste the raw Cookie header value from your browser's dev tools, if the video is behind a login"></textarea>
+
+      <button type="submit" id="submit-btn">Transcribe video</button>
+    </form>
+
+    <section id="status-panel" class="status-panel hidden">
+      <div class="spinner" id="spinner"></div>
+      <p id="status-text">Starting...</p>
+      <a id="download-link" class="hidden" href="#" download>Download transcript (.docx)</a>
+    </section>
+
+    <section id="error-panel" class="error-panel hidden">
+      <p id="error-text"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
