@@ -16,6 +16,8 @@ const STATUS_LABELS = {
 
 let pollTimer = null;
 
+const languageSelect = document.getElementById("language-select");
+
 // ---------- Tabs ----------
 const tabButtons = document.querySelectorAll(".tab-btn");
 const tabPanels = {
@@ -59,6 +61,7 @@ form.addEventListener("submit", async (event) => {
         video_url,
         title: title || null,
         cookie: cookie || null,
+        language: languageSelect.value || null,
       }),
     });
 
@@ -173,6 +176,7 @@ async function handleRecordingStopped() {
   formData.append("audio", blob, "recording.webm");
   const title = recordTitleInput.value.trim();
   if (title) formData.append("title", title);
+  if (languageSelect.value) formData.append("language", languageSelect.value);
 
   try {
     const res = await fetch("/api/jobs/upload", { method: "POST", body: formData });

@@ -28,7 +28,7 @@ def create_transcription_job(payload: CreateJobRequest) -> CreateJobResponse:
     job = create_job()
     thread = threading.Thread(
         target=run_pipeline,
-        args=(job.id, payload.video_url, payload.cookie, payload.title),
+        args=(job.id, payload.video_url, payload.cookie, payload.title, payload.language),
         daemon=True,
     )
     thread.start()
@@ -39,6 +39,7 @@ def create_transcription_job(payload: CreateJobRequest) -> CreateJobResponse:
 async def create_transcription_job_from_upload(
     audio: UploadFile = File(...),
     title: str | None = Form(default=None),
+    language: str | None = Form(default=None),
 ) -> CreateJobResponse:
     job = create_job()
     work_dir = JOBS_DIR / job.id
@@ -51,7 +52,7 @@ async def create_transcription_job_from_upload(
 
     thread = threading.Thread(
         target=run_audio_pipeline,
-        args=(job.id, raw_audio_path, title),
+        args=(job.id, raw_audio_path, title, language),
         daemon=True,
     )
     thread.start()

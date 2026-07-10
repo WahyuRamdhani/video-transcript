@@ -56,7 +56,7 @@ label {
   margin-top: 12px;
 }
 
-input, textarea {
+input, textarea, select {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -64,6 +64,14 @@ input, textarea {
   color: var(--fg);
   font-size: 0.95rem;
   font-family: inherit;
+}
+
+select {
+  margin-bottom: 20px;
+}
+
+#language-select {
+  width: 100%;
 }
 
 textarea {

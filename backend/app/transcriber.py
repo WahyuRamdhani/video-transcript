@@ -93,14 +93,26 @@ def _has_openai_key() -> bool:
     return bool(key) and key != "sk-..."
 
 
-def transcribe(audio_path: Path, work_dir: Path, client: OpenAI | None = None) -> list[TranscriptSegment]:
-    """Transcribe audio into timestamped segments."""
+def transcribe(
+    audio_path: Path,
+    work_dir: Path,
+    client: OpenAI | None = None,
+    language: str | None = None,
+) -> list[TranscriptSegment]:
+    """Transcribe audio into timestamped segments.
+
+    ``language`` is an ISO-639-1 code (e.g. "id" for Indonesian, "en" for
+    English). Leave it None/empty to auto-detect the spoken language.
+    """
+    language = language or None
     if client is not None or _has_openai_key():
-        return _transcribe_openai(audio_path, work_dir, client)
-    return _transcribe_local(audio_path)
+        return _transcribe_openai(audio_path, work_dir, client, language)
+    return _transcribe_local(audio_path, language)
 
 
-def _transcribe_openai(audio_path: Path, work_dir: Path, client: OpenAI | None) -> list[TranscriptSegment]:
+def _transcribe_openai(
+    audio_path: Path, work_dir: Path, client: OpenAI | None, language: str | None
+) -> list[TranscriptSegment]:
     client = client or OpenAI()
     chunks = _split_audio(audio_path, work_dir)
 
@@ -114,6 +126,7 @@ def _transcribe_openai(audio_path: Path, work_dir: Path, client: OpenAI | None) 
                 file=f,
                 response_format="verbose_json",
                 timestamp_granularities=["segment"],
+                **({"language": language} if language else {}),
             )
         for seg in response.segments or []:
             segments.append(
@@ -136,10 +149,10 @@ def _get_local_model():
     return _local_model
 
 
-def _transcribe_local(audio_path: Path) -> list[TranscriptSegment]:
+def _transcribe_local(audio_path: Path, language: str | None) -> list[TranscriptSegment]:
     """Transcribe using a local, free, open-source Whisper model (no API key)."""
     model = _get_local_model()
-    raw_segments, _info = model.transcribe(str(audio_path), vad_filter=True)
+    raw_segments, _info = model.transcribe(str(audio_path), vad_filter=True, language=language)
     return [
         TranscriptSegment(start=seg.start, end=seg.end, text=seg.text.strip())
         for seg in raw_segments

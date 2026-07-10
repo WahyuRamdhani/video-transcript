@@ -21,6 +21,10 @@ class CreateJobRequest(BaseModel):
         description="Raw Cookie header value, needed if the page requires login",
     )
     title: str | None = Field(default=None, description="Title for the exported document")
+    language: str | None = Field(
+        default=None,
+        description="ISO-639-1 code of the spoken language (e.g. 'id' for Indonesian). Leave unset to auto-detect.",
+    )
 
 
 class CreateJobResponse(BaseModel):
