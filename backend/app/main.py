@@ -3,12 +3,20 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .jobs import create_job, get_job, run_pipeline
+from .jobs import JOBS_DIR, create_job, get_job, run_audio_pipeline, run_pipeline
 from .models import CreateJobRequest, CreateJobResponse, JobStatus, JobStatusResponse
+
+_AUDIO_EXTENSION_BY_CONTENT_TYPE = {
+    "audio/webm": ".webm",
+    "audio/ogg": ".ogg",
+    "audio/wav": ".wav",
+    "audio/mp4": ".m4a",
+    "audio/mpeg": ".mp3",
+}
 
 app = FastAPI(title="Video Transcript Exporter")
 
@@ -21,6 +29,29 @@ def create_transcription_job(payload: CreateJobRequest) -> CreateJobResponse:
     thread = threading.Thread(
         target=run_pipeline,
         args=(job.id, payload.video_url, payload.cookie, payload.title),
+        daemon=True,
+    )
+    thread.start()
+    return CreateJobResponse(job_id=job.id)
+
+
+@app.post("/api/jobs/upload", response_model=CreateJobResponse)
+async def create_transcription_job_from_upload(
+    audio: UploadFile = File(...),
+    title: str | None = Form(default=None),
+) -> CreateJobResponse:
+    job = create_job()
+    work_dir = JOBS_DIR / job.id
+    work_dir.mkdir(parents=True, exist_ok=True)
+
+    extension = _AUDIO_EXTENSION_BY_CONTENT_TYPE.get(audio.content_type, ".webm")
+    raw_audio_path = work_dir / f"recording{extension}"
+    with open(raw_audio_path, "wb") as f:
+        f.write(await audio.read())
+
+    thread = threading.Thread(
+        target=run_audio_pipeline,
+        args=(job.id, raw_audio_path, title),
         daemon=True,
     )
     thread.start()

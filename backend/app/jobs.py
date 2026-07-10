@@ -86,6 +86,33 @@ def run_pipeline(job_id: str, video_url: str, cookie: str | None, title: str | N
         _cleanup_media_files(work_dir)
 
 
+def run_audio_pipeline(job_id: str, raw_audio_path: Path, title: str | None) -> None:
+    """Process a locally recorded/uploaded audio file (e.g. captured tab audio)."""
+    job = get_job(job_id)
+    if job is None:
+        return
+
+    work_dir = raw_audio_path.parent
+
+    try:
+        job.set_status(JobStatus.TRANSCRIBING)
+        audio_path = extract_audio(raw_audio_path, work_dir)
+        segments = transcribe(audio_path, work_dir)
+
+        job.set_status(JobStatus.BUILDING_DOCUMENT)
+        doc_title = title or "Video Transcript"
+        out_path = work_dir / "transcript.docx"
+        build_document(segments, "Recorded locally (no source URL)", doc_title, out_path)
+
+        job.document_path = out_path
+        job.set_status(JobStatus.DONE)
+    except Exception as exc:  # noqa: BLE001 - surface any failure to the client
+        logger.exception("Audio pipeline failed for job %s", job_id)
+        job.set_error(f"Transcription failed: {exc}")
+    finally:
+        _cleanup_media_files(work_dir)
+
+
 def _cleanup_media_files(work_dir: Path) -> None:
     """Remove intermediate audio/video files, keeping only the final document."""
     for item in work_dir.glob("*"):

@@ -9,22 +9,46 @@
 <body>
   <main class="container">
     <h1>Video Transcript Exporter</h1>
-    <p class="subtitle">Paste a video page URL, transcribe it, and download a structured DOCX transcript.</p>
+    <p class="subtitle">Transcribe a video and download a structured DOCX transcript.</p>
 
-    <form id="transcribe-form">
-      <label for="video_url">Video page URL</label>
-      <input type="url" id="video_url" name="video_url" placeholder="https://example.com/video-page" required />
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="record">Record while it plays</button>
+      <button type="button" class="tab-btn" data-tab="url">Paste a video URL</button>
+    </div>
 
-      <label for="title">Document title (optional)</label>
-      <input type="text" id="title" name="title" placeholder="Video Transcript" />
+    <section id="tab-record" class="tab-panel">
+      <p class="hint">
+        Play the video in another browser tab, click <strong>Start recording</strong>, then
+        pick that tab and check <strong>&ldquo;Share tab audio&rdquo;</strong> in the prompt.
+        No download or login access needed &mdash; only the audio is captured.
+      </p>
 
-      <label for="cookie">
-        Session cookie (optional — only needed if the page requires login)
-      </label>
-      <textarea id="cookie" name="cookie" rows="3" placeholder="Paste the raw Cookie header value from your browser's dev tools, if the video is behind a login"></textarea>
+      <label for="record-title">Document title (optional)</label>
+      <input type="text" id="record-title" placeholder="Video Transcript" />
 
-      <button type="submit" id="submit-btn">Transcribe video</button>
-    </form>
+      <div class="record-controls">
+        <button type="button" id="start-record-btn">Start recording</button>
+        <button type="button" id="stop-record-btn" class="hidden danger">Stop &amp; transcribe</button>
+        <span id="record-timer" class="hidden record-timer">00:00</span>
+      </div>
+    </section>
+
+    <section id="tab-url" class="tab-panel hidden">
+      <form id="transcribe-form">
+        <label for="video_url">Video page URL</label>
+        <input type="url" id="video_url" name="video_url" placeholder="https://example.com/video-page" />
+
+        <label for="title">Document title (optional)</label>
+        <input type="text" id="title" name="title" placeholder="Video Transcript" />
+
+        <label for="cookie">
+          Session cookie (optional — only needed if the page requires login)
+        </label>
+        <textarea id="cookie" name="cookie" rows="3" placeholder="Paste the raw Cookie header value from your browser's dev tools, if the video is behind a login"></textarea>
+
+        <button type="submit" id="submit-btn">Transcribe video</button>
+      </form>
+    </section>
 
     <section id="status-panel" class="status-panel hidden">
       <div class="spinner" id="spinner"></div>
