@@ -6,3 +6,7 @@ venv/
 backend/data/
 node_modules/
 .DS_Store
+backend/bin/
+backend/build/
+backend/dist/
+*.spec.bak

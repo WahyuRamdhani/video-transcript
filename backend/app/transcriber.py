@@ -14,6 +14,8 @@ from pathlib import Path
 
 from openai import OpenAI
 
+from .paths import ffmpeg_path, ffprobe_path
+
 # 24MB stays comfortably under the Whisper API's 25MB upload limit.
 _MAX_CHUNK_BYTES = 24 * 1024 * 1024
 _CHUNK_SECONDS = 600  # 10 minutes per chunk before compression accounting
@@ -36,7 +38,7 @@ def extract_audio(video_path: Path, out_dir: Path) -> Path:
     out_path = out_dir / f"{video_path.stem}.mp3"
     subprocess.run(
         [
-            "ffmpeg", "-y", "-i", str(video_path),
+            ffmpeg_path(), "-y", "-i", str(video_path),
             "-vn", "-ac", "1", "-ar", "16000", "-b:a", "64k",
             str(out_path),
         ],
@@ -49,7 +51,7 @@ def extract_audio(video_path: Path, out_dir: Path) -> Path:
 def _get_duration_seconds(audio_path: Path) -> float:
     result = subprocess.run(
         [
-            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            ffprobe_path(), "-v", "error", "-show_entries", "format=duration",
             "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path),
         ],
         check=True,
@@ -72,7 +74,7 @@ def _split_audio(audio_path: Path, out_dir: Path) -> list[Path]:
         chunk_path = out_dir / f"{audio_path.stem}_part{index}.mp3"
         subprocess.run(
             [
-                "ffmpeg", "-y", "-i", str(audio_path),
+                ffmpeg_path(), "-y", "-i", str(audio_path),
                 "-ss", str(start), "-t", str(_CHUNK_SECONDS),
                 "-ac", "1", "-ar", "16000", "-b:a", "64k",
                 str(chunk_path),

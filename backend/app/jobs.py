@@ -10,12 +10,13 @@ from pathlib import Path
 
 from .doc_builder import build_document
 from .models import JobStatus
+from .paths import data_dir
 from .transcriber import extract_audio, transcribe
 from .video_extractor import VideoExtractionError, download_video
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = data_dir()
 JOBS_DIR = DATA_DIR / "jobs"
 
 

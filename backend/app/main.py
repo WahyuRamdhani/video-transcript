@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import threading
-from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -9,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .jobs import JOBS_DIR, create_job, get_job, run_audio_pipeline, run_pipeline
 from .models import CreateJobRequest, CreateJobResponse, JobStatus, JobStatusResponse
+from .paths import resource_dir
 
 _AUDIO_EXTENSION_BY_CONTENT_TYPE = {
     "audio/webm": ".webm",
@@ -20,7 +20,7 @@ _AUDIO_EXTENSION_BY_CONTENT_TYPE = {
 
 app = FastAPI(title="Video Transcript Exporter")
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
+FRONTEND_DIR = resource_dir() / "frontend"
 
 
 @app.post("/api/jobs", response_model=CreateJobResponse)
