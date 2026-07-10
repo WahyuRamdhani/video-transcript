@@ -1,0 +1,80 @@
+name: Build desktop apps
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download ffmpeg
+        run: |
+          curl -L -o ffmpeg.zip https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
+          tar -xf ffmpeg.zip
+          mkdir -p backend/bin
+          FFDIR=$(find . -maxdepth 1 -type d -name "ffmpeg-*")
+          cp "$FFDIR/bin/ffmpeg.exe" backend/bin/ffmpeg.exe
+          cp "$FFDIR/bin/ffprobe.exe" backend/bin/ffprobe.exe
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-build.txt
+
+      - name: Build
+        run: |
+          cd backend
+          pyinstaller video_transcript.spec
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VideoTranscriptExporter-Windows
+          path: backend/dist/VideoTranscriptExporter.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg
+        run: |
+          brew install ffmpeg
+          mkdir -p backend/bin
+          cp "$(which ffmpeg)" backend/bin/ffmpeg
+          cp "$(which ffprobe)" backend/bin/ffprobe
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-build.txt
+
+      - name: Build
+        run: |
+          cd backend
+          pyinstaller video_transcript_mac.spec
+
+      - name: Assemble launcher
+        run: |
+          cd backend
+          cp "mac/Launch VideoTranscriptExporter.command" dist/
+          chmod +x "dist/Launch VideoTranscriptExporter.command"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VideoTranscriptExporter-macOS
+          path: backend/dist
