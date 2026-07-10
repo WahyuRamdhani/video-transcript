@@ -21,9 +21,13 @@ DOCX transcript. Two ways to get audio in:
      HTML for a direct `<video>`/`og:video` source. Pages that require login
      can be accessed by pasting the browser's `Cookie` header value into the
      optional field in the UI.
-2. **Transcribe** — audio is normalized with `ffmpeg` and sent to the OpenAI
-   Whisper API (`whisper-1`) for timestamped transcription. Long audio is
-   automatically chunked to stay under the API's upload limit.
+2. **Transcribe** — audio is normalized with `ffmpeg`, then transcribed:
+   - If `OPENAI_API_KEY` is set, it's sent to the OpenAI Whisper API
+     (`whisper-1`), chunked automatically to stay under the upload limit.
+   - Otherwise, it's transcribed locally and for free using
+     [`faster-whisper`](https://github.com/SYSTRAN/faster-whisper) — no
+     account or internet access needed after the model is first downloaded.
+     Slower on a laptop CPU than the API, but no cost.
 3. **Export** — the timestamped segments are grouped into paragraphs and
    sections (based on pause length) and rendered into a `.docx` file with
    `python-docx`, including a title, source (URL or "recorded locally"),
@@ -52,7 +56,8 @@ frontend/
 - Python 3.11+
 - [`ffmpeg`](https://ffmpeg.org/) installed and on your `PATH` (used for audio
   extraction and chunking)
-- An OpenAI API key with access to the Whisper transcription API
+- Either an OpenAI API key (paid, fast), **or** nothing at all — leave
+  `OPENAI_API_KEY` blank in `.env` to use the free local model instead
 
 ### Install
 
@@ -66,8 +71,11 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# then edit .env and set OPENAI_API_KEY
 ```
+
+Leave `OPENAI_API_KEY` blank to use the free local model (it downloads the
+model weights the first time you transcribe something — needs internet once,
+then works offline). Or set it to a real key to use the paid API instead.
 
 ### Run
 

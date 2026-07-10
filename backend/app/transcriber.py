@@ -1,6 +1,13 @@
-"""Audio extraction + speech-to-text transcription."""
+"""Audio extraction + speech-to-text transcription.
+
+Uses the OpenAI Whisper API when OPENAI_API_KEY is configured, and falls
+back to a local, free, open-source Whisper model (via faster-whisper)
+otherwise. No code changes needed to switch between them — just whether
+the API key is set.
+"""
 from __future__ import annotations
 
+import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,6 +17,11 @@ from openai import OpenAI
 # 24MB stays comfortably under the Whisper API's 25MB upload limit.
 _MAX_CHUNK_BYTES = 24 * 1024 * 1024
 _CHUNK_SECONDS = 600  # 10 minutes per chunk before compression accounting
+
+# Local model size: tiny/base/small/medium/large-v3. Bigger = more accurate,
+# slower, more RAM. "base" is a reasonable default for a laptop CPU.
+_LOCAL_MODEL_SIZE = os.environ.get("WHISPER_LOCAL_MODEL", "base")
+_local_model = None
 
 
 @dataclass
@@ -74,8 +86,19 @@ def _split_audio(audio_path: Path, out_dir: Path) -> list[Path]:
     return chunks
 
 
+def _has_openai_key() -> bool:
+    key = os.environ.get("OPENAI_API_KEY", "").strip()
+    return bool(key) and key != "sk-..."
+
+
 def transcribe(audio_path: Path, work_dir: Path, client: OpenAI | None = None) -> list[TranscriptSegment]:
-    """Transcribe audio into timestamped segments using the OpenAI Whisper API."""
+    """Transcribe audio into timestamped segments."""
+    if client is not None or _has_openai_key():
+        return _transcribe_openai(audio_path, work_dir, client)
+    return _transcribe_local(audio_path)
+
+
+def _transcribe_openai(audio_path: Path, work_dir: Path, client: OpenAI | None) -> list[TranscriptSegment]:
     client = client or OpenAI()
     chunks = _split_audio(audio_path, work_dir)
 
@@ -101,3 +124,21 @@ def transcribe(audio_path: Path, work_dir: Path, client: OpenAI | None = None) -
         time_offset += _get_duration_seconds(chunk_path)
 
     return segments
+
+
+def _get_local_model():
+    global _local_model
+    if _local_model is None:
+        from faster_whisper import WhisperModel
+        _local_model = WhisperModel(_LOCAL_MODEL_SIZE, device="cpu", compute_type="int8")
+    return _local_model
+
+
+def _transcribe_local(audio_path: Path) -> list[TranscriptSegment]:
+    """Transcribe using a local, free, open-source Whisper model (no API key)."""
+    model = _get_local_model()
+    raw_segments, _info = model.transcribe(str(audio_path), vad_filter=True)
+    return [
+        TranscriptSegment(start=seg.start, end=seg.end, text=seg.text.strip())
+        for seg in raw_segments
+    ]
