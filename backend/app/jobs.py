@@ -55,7 +55,12 @@ def get_job(job_id: str) -> Job | None:
 
 
 def run_pipeline(
-    job_id: str, video_url: str, cookie: str | None, title: str | None, language: str | None = None
+    job_id: str,
+    video_url: str,
+    cookie: str | None,
+    title: str | None,
+    language: str | None = None,
+    vocabulary: str | None = None,
 ) -> None:
     job = get_job(job_id)
     if job is None:
@@ -70,7 +75,7 @@ def run_pipeline(
 
         job.set_status(JobStatus.TRANSCRIBING)
         audio_path = extract_audio(video_path, work_dir)
-        segments = transcribe(audio_path, work_dir, language=language)
+        segments = transcribe(audio_path, work_dir, language=language, vocabulary=vocabulary)
 
         job.set_status(JobStatus.BUILDING_DOCUMENT)
         doc_title = title or "Video Transcript"
@@ -90,7 +95,11 @@ def run_pipeline(
 
 
 def run_audio_pipeline(
-    job_id: str, raw_audio_path: Path, title: str | None, language: str | None = None
+    job_id: str,
+    raw_audio_path: Path,
+    title: str | None,
+    language: str | None = None,
+    vocabulary: str | None = None,
 ) -> None:
     """Process a locally recorded/uploaded audio file (e.g. captured tab audio)."""
     job = get_job(job_id)
@@ -102,7 +111,7 @@ def run_audio_pipeline(
     try:
         job.set_status(JobStatus.TRANSCRIBING)
         audio_path = extract_audio(raw_audio_path, work_dir)
-        segments = transcribe(audio_path, work_dir, language=language)
+        segments = transcribe(audio_path, work_dir, language=language, vocabulary=vocabulary)
 
         job.set_status(JobStatus.BUILDING_DOCUMENT)
         doc_title = title or "Video Transcript"

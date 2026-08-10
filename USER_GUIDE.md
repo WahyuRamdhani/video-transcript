@@ -31,27 +31,33 @@ timestamped Word document — no installation, no account.
    page with the video you want transcribed. Get it paused and ready —
    don't play it yet.
 
-4. **Start recording.** Switch back to the app's tab and click
+4. **(Optional) Improve accuracy first.** At the top of the app, set
+   **Spoken language** if it's not English (e.g. Bahasa Indonesia), and
+   type any names or jargon likely to come up — a company name, people's
+   names, technical terms — into **Known names/terms**. This helps the
+   transcript get them right instead of guessing by sound.
+
+5. **Start recording.** Switch back to the app's tab and click
    **Start recording**.
 
-5. **Share the video's tab with audio.** Chrome shows a sharing window.
+6. **Share the video's tab with audio.** Chrome shows a sharing window.
    Click **Chrome Tab** at the top, select the tab with your video, and
    check **"Also share tab audio"** before clicking **Share**.
 
-6. **Play the video.** Switch to the video's tab and press play. Let it run
+7. **Play the video.** Switch to the video's tab and press play. Let it run
    all the way through.
 
-7. **Stop and transcribe.** Switch back to the app tab and click
+8. **Stop and transcribe.** Switch back to the app tab and click
    **Stop & transcribe**.
 
-8. **Wait for processing.** The status moves through "Transcribing..." and
+9. **Wait for processing.** The status moves through "Transcribing..." and
    "Building the document...". This roughly tracks the length of the video,
    plus a few extra minutes the very first time, while the speech
    recognition model downloads.
 
-9. **Download the transcript.** Click **Download transcript (.docx)** and
-   open it in Word — a title, source info, and the full transcript
-   organized into timestamped sections.
+10. **Download the transcript.** Click **Download transcript (.docx)** and
+    open it in Word — a title, source info, and the full transcript
+    organized into timestamped sections.
 
 ## If something looks off
 

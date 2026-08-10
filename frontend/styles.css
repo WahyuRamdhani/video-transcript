@@ -74,6 +74,18 @@ select {
   width: 100%;
 }
 
+#vocabulary-input {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
 textarea {
   resize: vertical;
 }

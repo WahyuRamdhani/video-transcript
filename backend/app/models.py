@@ -25,6 +25,10 @@ class CreateJobRequest(BaseModel):
         default=None,
         description="ISO-639-1 code of the spoken language (e.g. 'id' for Indonesian). Leave unset to auto-detect.",
     )
+    vocabulary: str | None = Field(
+        default=None,
+        description="Known names/terms likely to appear (e.g. a company name), to bias transcription toward recognizing them correctly.",
+    )
 
 
 class CreateJobResponse(BaseModel):

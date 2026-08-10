@@ -21,8 +21,10 @@ _MAX_CHUNK_BYTES = 24 * 1024 * 1024
 _CHUNK_SECONDS = 600  # 10 minutes per chunk before compression accounting
 
 # Local model size: tiny/base/small/medium/large-v3. Bigger = more accurate,
-# slower, more RAM. "base" is a reasonable default for a laptop CPU.
-_LOCAL_MODEL_SIZE = os.environ.get("WHISPER_LOCAL_MODEL", "base")
+# slower, more RAM. "small" is a reasonable accuracy/speed balance for a
+# laptop CPU; drop to "base" for speed or raise to "medium"/"large-v3" for
+# accuracy if you have the time and RAM to spare.
+_LOCAL_MODEL_SIZE = os.environ.get("WHISPER_LOCAL_MODEL", "small")
 _local_model = None
 
 
@@ -98,20 +100,30 @@ def transcribe(
     work_dir: Path,
     client: OpenAI | None = None,
     language: str | None = None,
+    vocabulary: str | None = None,
 ) -> list[TranscriptSegment]:
     """Transcribe audio into timestamped segments.
 
     ``language`` is an ISO-639-1 code (e.g. "id" for Indonesian, "en" for
     English). Leave it None/empty to auto-detect the spoken language.
+
+    ``vocabulary`` is a free-text hint of names/terms likely to appear (e.g.
+    a company name, jargon) that biases the model toward recognizing and
+    spelling them correctly, instead of guessing phonetically.
     """
     language = language or None
+    vocabulary = vocabulary or None
     if client is not None or _has_openai_key():
-        return _transcribe_openai(audio_path, work_dir, client, language)
-    return _transcribe_local(audio_path, language)
+        return _transcribe_openai(audio_path, work_dir, client, language, vocabulary)
+    return _transcribe_local(audio_path, language, vocabulary)
 
 
 def _transcribe_openai(
-    audio_path: Path, work_dir: Path, client: OpenAI | None, language: str | None
+    audio_path: Path,
+    work_dir: Path,
+    client: OpenAI | None,
+    language: str | None,
+    vocabulary: str | None,
 ) -> list[TranscriptSegment]:
     client = client or OpenAI()
     chunks = _split_audio(audio_path, work_dir)
@@ -127,6 +139,7 @@ def _transcribe_openai(
                 response_format="verbose_json",
                 timestamp_granularities=["segment"],
                 **({"language": language} if language else {}),
+                **({"prompt": vocabulary} if vocabulary else {}),
             )
         for seg in response.segments or []:
             segments.append(
@@ -149,10 +162,14 @@ def _get_local_model():
     return _local_model
 
 
-def _transcribe_local(audio_path: Path, language: str | None) -> list[TranscriptSegment]:
+def _transcribe_local(
+    audio_path: Path, language: str | None, vocabulary: str | None
+) -> list[TranscriptSegment]:
     """Transcribe using a local, free, open-source Whisper model (no API key)."""
     model = _get_local_model()
-    raw_segments, _info = model.transcribe(str(audio_path), vad_filter=True, language=language)
+    raw_segments, _info = model.transcribe(
+        str(audio_path), vad_filter=True, language=language, initial_prompt=vocabulary
+    )
     return [
         TranscriptSegment(start=seg.start, end=seg.end, text=seg.text.strip())
         for seg in raw_segments
