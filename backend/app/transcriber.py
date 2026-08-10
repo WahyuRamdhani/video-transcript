@@ -16,6 +16,13 @@ from openai import OpenAI
 
 from .paths import ffmpeg_path, ffprobe_path
 
+# Avoids "[WinError 1314] A required privilege is not held by the client"
+# when caching downloaded model files on Windows: creating symlinks there
+# needs Administrator rights or Developer Mode enabled, so tell the cache
+# to copy files instead. Must be set before faster_whisper/huggingface_hub
+# is imported (see _get_local_model, which imports it lazily).
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS", "1")
+
 # 24MB stays comfortably under the Whisper API's 25MB upload limit.
 _MAX_CHUNK_BYTES = 24 * 1024 * 1024
 _CHUNK_SECONDS = 600  # 10 minutes per chunk before compression accounting
