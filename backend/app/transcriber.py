@@ -20,11 +20,12 @@ from .paths import ffmpeg_path, ffprobe_path
 _MAX_CHUNK_BYTES = 24 * 1024 * 1024
 _CHUNK_SECONDS = 600  # 10 minutes per chunk before compression accounting
 
-# Local model size: tiny/base/small/medium/large-v3. Bigger = more accurate,
-# slower, more RAM. "small" is a reasonable accuracy/speed balance for a
-# laptop CPU; drop to "base" for speed or raise to "medium"/"large-v3" for
-# accuracy if you have the time and RAM to spare.
-_LOCAL_MODEL_SIZE = os.environ.get("WHISPER_LOCAL_MODEL", "small")
+# Local model size: tiny/base/small/medium/large-v3/large-v3-turbo. Bigger =
+# more accurate, slower, more RAM. "large-v3-turbo" keeps most of large-v3's
+# accuracy (same encoder, a much lighter decoder) at close to "small"/"medium"
+# speed, so it's the default. Drop to "small" or "base" if it's too slow on
+# your machine.
+_LOCAL_MODEL_SIZE = os.environ.get("WHISPER_LOCAL_MODEL", "large-v3-turbo")
 _local_model = None
 
 
